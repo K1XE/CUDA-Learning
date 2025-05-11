@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/cuda/include",
+                "/usr/include"
+            ],
+            "defines": [
+                "__CUDACC__"   // 关键点：告诉插件“这是 CUDA 代码”
+            ],
+            "compilerPath": "/usr/local/cuda/bin/nvcc",
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+    
+}
