@@ -7,40 +7,44 @@
 #define K 4
 #define N 2
 
-#define CHECK_CUDA(call) { \
-    cudaError_t err = call; \
-    if (err != cudaSuccess) { \
-        fprintf(stderr, "CUDA error in %s:%d: %s\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
-        exit(EXIT_FAILURE); \
-    } \
-}
+#define CHECK_CUDA(call)                                                                               \
+    {                                                                                                  \
+        cudaError_t err = call;                                                                        \
+        if (err != cudaSuccess)                                                                        \
+        {                                                                                              \
+            fprintf(stderr, "CUDA error in %s:%d: %s\n", __FILE__, __LINE__, cudaGetErrorString(err)); \
+            exit(EXIT_FAILURE);                                                                        \
+        }                                                                                              \
+    }
 
-#define CHECK_CUBLAS(call) { \
-    cublasStatus_t status = call; \
-    if (status != CUBLAS_STATUS_SUCCESS) { \
-        fprintf(stderr, "cuBLAS error in %s:%d: %d\n", __FILE__, __LINE__, status); \
-        exit(EXIT_FAILURE); \
-    } \
-}
+#define CHECK_CUBLAS(call)                                                              \
+    {                                                                                   \
+        cublasStatus_t status = call;                                                   \
+        if (status != CUBLAS_STATUS_SUCCESS)                                            \
+        {                                                                               \
+            fprintf(stderr, "cuBLAS error in %s:%d: %d\n", __FILE__, __LINE__, status); \
+            exit(EXIT_FAILURE);                                                         \
+        }                                                                               \
+    }
 
 #undef PRINT_MATRIX
-#define PRINT_MATRIX(mat, rows, cols) \
-    for (int i = 0; i < rows; i++) { \
-        for (int j = 0; j < cols; j++) \
+#define PRINT_MATRIX(mat, rows, cols)            \
+    for (int i = 0; i < rows; i++)               \
+    {                                            \
+        for (int j = 0; j < cols; j++)           \
             printf("%8.3f ", mat[i * cols + j]); \
-        printf("\n"); \
-    } \
+        printf("\n");                            \
+    }                                            \
     printf("\n");
-
 
 void cpuMatMul(float *A, float *B, float *C)
 {
-    for (int i = 0; i < M; i ++ )
+    for (int i = 0; i < M; i++)
     {
-        for (int j = 0; j < N; j ++ )
+        for (int j = 0; j < N; j++)
         {
             float sums = 0.0f;
-            for (int l = 0; l < K; l ++ )
+            for (int l = 0; l < K; l++)
             {
                 sums += A[i * K + l] * B[l * N + j];
             }
@@ -49,7 +53,7 @@ void cpuMatMul(float *A, float *B, float *C)
     }
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     float A[M * K] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f};
     float B[K * N] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f};
@@ -68,11 +72,11 @@ int main(int argc, char** argv)
 
     // 精度转换
     __half A_h[M * K], B_h[K * N];
-    for (int i = 0; i < M * K; i ++ )
+    for (int i = 0; i < M * K; i++)
     {
         A_h[i] = __float2half(A[i]);
     }
-    for (int i = 0; i < K * N; i ++ )
+    for (int i = 0; i < K * N; i++)
     {
         B_h[i] = __float2half(B[i]);
     }
@@ -83,19 +87,19 @@ int main(int argc, char** argv)
     __half alpha_h = __float2half(1.0f), beta_h = __float2half(0.0f);
 
     CHECK_CUBLAS(cublasHgemm(
-        handle1, 
-        CUBLAS_OP_N, CUBLAS_OP_N, 
-        N, M, K, 
-        &alpha_h, 
-        d_B_h, N, 
-        d_A_h, K, 
-        &beta_h, 
+        handle1,
+        CUBLAS_OP_N, CUBLAS_OP_N,
+        N, M, K,
+        &alpha_h,
+        d_B_h, N,
+        d_A_h, K,
+        &beta_h,
         d_C_h, N));
-    
+
     __half C_h[M * N];
     CHECK_CUDA(cudaMemcpy(C_h, d_C_h, M * N * sizeof(__half), cudaMemcpyDeviceToHost));
-    
-    for (int i = 0; i < M * N; i ++ )
+
+    for (int i = 0; i < M * N; i++)
     {
         C_cublas_h[i] = __half2float(C_h[i]);
     }
