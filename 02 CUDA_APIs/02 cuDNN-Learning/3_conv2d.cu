@@ -52,6 +52,32 @@ __global__ void naiveConv2d(float *input, float *kernel, float *output, int widt
             {
                 for (int kx = -halfKernel; kx <= halfKernel; kx++)
                 {
+
+                    /*
+                    输入图（宽 x 高）：
+                    +----+----+----+----+----+
+                    |  1 |  2 |  3 |  4 |  5 |
+                    +----+----+----+----+----+
+                    |  6 |  7 | [8] |  9 | 10 |
+                    +----+----+----+----+----+
+                    | 11 | 12 | 13 | 14 | 15 |
+                    +----+----+----+----+----+
+                    | 16 | 17 | 18 | 19 | 20 |
+                    +----+----+----+----+----+
+
+                    卷积核（3x3）覆盖的区域：
+
+                    (x=1,y=0)  (x=2,y=0)  (x=3,y=0)
+                    +----+----+----+
+                    |  2 |  3 |  4 |
+                    +----+----+----+
+                    |  7 | [8] | 9 |
+                    +----+----+----+
+                    | 12 | 13 | 14 |
+                    +----+----+----+
+                    */
+
+                    // 找到输入图像的对应像素坐标
                     int ix = x + kx;
                     int iy = y + ky;
                     if (ix >= 0 && ix < width && iy >= 0 && iy < height)
@@ -143,13 +169,16 @@ int main(int argc, char **argv)
 
     CHECK_CUDNN(cudnnSetTensor4dDescriptor(inputDesc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, bsz, in_channels, height, width));
     CHECK_CUDNN(cudnnSetTensor4dDescriptor(outputDesc, CUDNN_TENSOR_NCHW, CUDNN_DATA_FLOAT, bsz, out_channels, height, width));
-    CHECK_CUDNN(cudnnSetFilter4dDescriptor(kernelDesc, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, out_channels, in_channels, kernel_size, kernel_size));   //
+    CHECK_CUDNN(cudnnSetFilter4dDescriptor(kernelDesc, CUDNN_DATA_FLOAT, CUDNN_TENSOR_NCHW, out_channels, in_channels, kernel_size, kernel_size)); //
+    // padding_h, padding_w, stride_h, stride_w, dilation_h, dilation_w
     CHECK_CUDNN(cudnnSetConvolution2dDescriptor(convDesc, kernel_size / 2, kernel_size / 2, 1, 1, 1, 1, CUDNN_CROSS_CORRELATION, CUDNN_DATA_FLOAT)); //
 
     // 测试最快的 cuDNN algo
     int requestedAlgoCount = CUDNN_CONVOLUTION_FWD_ALGO_COUNT;
     int returnedAlgoCount;
     cudnnConvolutionFwdAlgoPerf_t perfResults[CUDNN_CONVOLUTION_FWD_ALGO_COUNT];
+
+    // 让 cuDNN 测试多个前向卷积算法的运行时间和资源使用情况
     CHECK_CUDNN(cudnnGetConvolutionForwardAlgorithm_v7(cudnn, inputDesc, kernelDesc, convDesc, outputDesc,
                                                        requestedAlgoCount, &returnedAlgoCount, perfResults));
 
@@ -165,9 +194,11 @@ int main(int argc, char **argv)
 
     std::cout << "选择的cuDNN算法为: " << algo << std::endl;
 
+    // 卷积配置和选择的 algo 算法，在运行过程中最多需要多少工作空间（以字节为单位）
     size_t workspaceSize;
     CHECK_CUDNN(cudnnGetConvolutionForwardWorkspaceSize(cudnn, inputDesc, kernelDesc, convDesc, outputDesc, algo, &workspaceSize)); //
 
+    // 一块临时用的内存 无需暴露成 float*、int* 等
     void *d_workspace;
     CHECK_CUDA(cudaMalloc(&d_workspace, workspaceSize));
 
@@ -197,6 +228,8 @@ int main(int argc, char **argv)
     {
         // cuDNN benchmark
         CHECK_CUDA(cudaEventRecord(start));
+
+        // alpha = 1.0f，beta = 0.0f 意味着：out = alpha * conv(in, kernel) + beta * out 为 标准卷积
         CHECK_CUDNN(cudnnConvolutionForward(cudnn, &alpha, inputDesc, d_input, kernelDesc, d_kernel, convDesc,
                                             algo, d_workspace, workspaceSize, &beta, outputDesc, d_output_cudnn));
         CHECK_CUDA(cudaEventRecord(stop));
