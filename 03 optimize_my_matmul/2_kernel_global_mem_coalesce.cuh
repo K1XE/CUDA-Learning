@@ -1,3 +1,22 @@
+/*
+ * sgemmGlobalMemCoalesce.cu
+ *
+ * 简要说明：
+ *  这是一个基于 CUDA 的单精度矩阵乘加（SGEMM）示例，
+ *  计算公式：C = alpha * A * B + beta * C
+ *
+ *  主要优化点：
+ *    1. 全局内存访问对齐(Coalesced Access)：
+ *       通过合理映射 threadIdx.x 到 C 中的 (row, col)，
+ *       使得同一个 warp 的线程能够访问 B 矩阵同一行的连续元素，
+ *       从而实现内存事务合并。
+ *    2. 线程映射(Thread Mapping)：
+ *       每个线程负责计算 C 矩阵的一个元素，
+ *       通过 threadIdx.x 的整除与取模运算将其映射到二维索引 (crow, ccol)。
+ *    3. 简单内积(Scalar Reduction)：
+ *       每个线程沿 K 方向做标量乘加，
+ *       对 B 的访问是连续的，可被合并为少量内存事务。
+ */
 #pragma once
 
 #include <cuda_runtime.h>

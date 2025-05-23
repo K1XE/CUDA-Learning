@@ -1,3 +1,21 @@
+/*
+ * sgemm2DBlocktiling.cu
+ *
+ * 简要说明：
+ *  这是一个基于 CUDA 的单精度矩阵乘加（SGEMM）实现，
+ *  计算公式：C = alpha * A * B + beta * C
+ *
+ *  主要优化点：
+ *    1. 二维块划分(2D Block Tiling)：
+ *       将输出矩阵分为 BM×BN 大小的 Block，每个 Block 由多个线程负责。
+ *    2. 共享内存缓存(Shared Memory)：
+ *       将 A 的 BM×BK 子块和 B 的 BK×BN 子块加载到 As、Bs，以减少全局内存访问。
+ *    3. Thread 级别微分块运算(Register Blocking)：
+ *       每个线程计算 TM×TN 大小的微输出块，将部分和保存在寄存器 threadRes[]。
+ *    4. 均匀分配加载(Load Balancing)：
+ *       线程通过 inner_row/inner_col 和 stride，将各自负责的行/列搬到共享内存，
+ *       避免访问冲突并提升并行度。
+ */
 #pragma once
 
 #include <cuda_runtime.h>

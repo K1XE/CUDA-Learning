@@ -4,7 +4,7 @@
 #include <cuda_runtime.h>
 #include <assert.h>
 
-#include "5_kernel_2D_blocktiling_v2.cuh"
+#include "5_kernel_2D_blocktiling.cuh"
 
 #define CHECK_CUDA(call)                                          \
     do                                                            \

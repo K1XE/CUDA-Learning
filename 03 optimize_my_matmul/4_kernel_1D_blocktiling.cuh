@@ -1,3 +1,21 @@
+/*
+ * sgemm1DBlocktiling.cu
+ *
+ * 简要说明：
+ *  这是一个基于 CUDA 的单精度矩阵乘加（SGEMM）实现，
+ *  计算公式：C = alpha * A * B + beta * C
+ *
+ *  主要优化点：
+ *    1. 一维块划分(1D Block Tiling)：
+ *       将输出矩阵分为 BM×N 大小的 Block，每个 Block 沿行方向划分，
+ *       block 内线程只在列方向分担计算。
+ *    2. 共享内存缓存(Shared Memory)：
+ *       将 A 的 BM×BK 子块和 B 的 BK×BN 子块加载到共享内存，减少全局内存访问。
+ *    3. 寄存器累加(Register Accumulation)：
+ *       每个线程负责计算 TM 行×1 列的输出数据，累加部分和保存在寄存器 threadRes[]。
+ *    4. 均匀分配加载(Load Balancing)：
+ *       线程通过 inner_row/inner_col 将子块行/列均匀搬到共享内存，避免冲突。
+ */
 #pragma once
 
 #include <cuda_runtime.h>
