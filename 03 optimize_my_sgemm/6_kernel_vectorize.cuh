@@ -35,7 +35,7 @@ __global__ void sgemmVectorize(
     uint threadCol = threadIdx.x % (BN / TN); // 列号 [0 .. BN/TN)
 
     // 三、给这个 block 分配共享内存，用于缓存 A 的 BM×BK 子块，B 的 BK×BN 子块
-    __shared__ float As[BM * BK];
+    __shared__ float As[BK * BM];
     __shared__ float Bs[BK * BN];
 
     // 四、偏移全局指针到本 block 负责的子块起点
