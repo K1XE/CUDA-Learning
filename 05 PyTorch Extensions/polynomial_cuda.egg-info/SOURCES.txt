@@ -1,0 +1,6 @@
+polynomial_cuda.cu
+setup.py
+polynomial_cuda.egg-info/PKG-INFO
+polynomial_cuda.egg-info/SOURCES.txt
+polynomial_cuda.egg-info/dependency_links.txt
+polynomial_cuda.egg-info/top_level.txt
