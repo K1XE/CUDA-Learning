@@ -92,6 +92,16 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "time.h": "c",
+        "__functional_base": "c",
+        "__hash_table": "c",
+        "__split_buffer": "c",
+        "__tree": "c",
+        "filesystem": "c",
+        "queue": "c",
+        "stack": "c",
+        "__config": "c",
+        "__memory": "c"
     }
 }
