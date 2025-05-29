@@ -1,6 +1,5 @@
 06 MNIST/cpu version/data/
 06 MNIST/cpu version/mnist_data/
 06 MNIST/python version/data/
-06 MNIST/cpu version/data/
-06 MNIST/cpu version/mnist_data/
-06 MNIST/python version/data/
+06 MNIST/gpu version/data/
+06 MNIST/gpu version/mnist_data/

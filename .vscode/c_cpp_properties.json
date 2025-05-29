@@ -4,7 +4,7 @@
     "configurations": [
       {
         "name": "Linux",
-        "compilerPath": "/usr/bin/g++",
+        "compilerPath": "/usr/local/cuda/bin/nvcc",
         "cStandard": "c11",
         "cppStandard": "c++20",
         "intelliSenseMode": "linux-gcc-x64",

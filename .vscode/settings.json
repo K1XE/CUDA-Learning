@@ -102,6 +102,7 @@
         "queue": "c",
         "stack": "c",
         "__config": "c",
-        "__memory": "c"
+        "__memory": "c",
+        "string.h": "c"
     }
 }
